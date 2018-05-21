@@ -12,6 +12,9 @@ const (
 	contentURLEncoded = "application/x-www-form-urlencoded"
 )
 
+// DefaultService represents the default provider wrapped into an HTTP service.
+var DefaultService = CreateService(DefaultProvider)
+
 // CreateService Wraps a Provider into an http Handler.
 // Handles body parsing to message.
 // Delegates sending message to Provider.
