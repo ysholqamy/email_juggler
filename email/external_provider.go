@@ -39,6 +39,9 @@ type Mailgun struct {
 	BaseURL string
 }
 
+// DefaultMailgun is a ready to use Mailgun provider
+var DefaultMailgun = &Mailgun{Key: mailgunKey, Domain: mailgunDomain, BaseURL: mailgunBaseURL}
+
 // Send implements the Provider Send method.
 func (mg *Mailgun) Send(m Message) error        { return processMessage(mg, m) }
 func (mg *Mailgun) url() string                 { return mg.BaseURL + "/" + mg.Domain + "/messages" }
@@ -67,6 +70,9 @@ type Sendgrid struct {
 	Key     string
 	BaseURL string
 }
+
+// DefaultSendgrid is a ready to use Sendgrid provider
+var DefaultSendgrid = &Sendgrid{Key: sendgridKey, BaseURL: sendgridBaseURL}
 
 // Send implements the Provider Send method.
 func (sg *Sendgrid) Send(m Message) error        { return processMessage(sg, m) }
