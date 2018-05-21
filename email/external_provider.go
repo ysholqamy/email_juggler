@@ -45,16 +45,7 @@ func (mg *Mailgun) name() string                { return "Mailgun" }
 // Handles Mailgun specific response errors
 func (mg *Mailgun) normalizeErrors(res *http.Response) error {
 	// parseBody
-	var body map[string]interface{}
-
-	bodyBuffer, err := ioutil.ReadAll(res.Body)
-
-	if err != nil {
-		return errors.New(ErrProviderBadResponse.Error() + ": " + err.Error())
-	}
-
-	err = json.Unmarshal(bodyBuffer, &body)
-
+	body, err := parseJSONBody(res)
 	if err != nil {
 		return errors.New(ErrProviderBadResponse.Error() + ": " + err.Error())
 	}
@@ -83,16 +74,7 @@ func (sg *Sendgrid) name() string                { return "Sendgrid" }
 // Handles Sendgrid specific response errors
 func (sg *Sendgrid) normalizeErrors(res *http.Response) error {
 	// parseBody
-	var body map[string]interface{}
-
-	bodyBuffer, err := ioutil.ReadAll(res.Body)
-
-	if err != nil {
-		return errors.New(ErrProviderBadResponse.Error() + ": " + err.Error())
-	}
-
-	err = json.Unmarshal(bodyBuffer, &body)
-
+	body, err := parseJSONBody(res)
 	if err != nil {
 		return errors.New(ErrProviderBadResponse.Error() + ": " + err.Error())
 	}
@@ -155,4 +137,23 @@ func processMessage(ep externalProvider, m Message) error {
 
 	// message sent successfully.
 	return nil
+}
+
+// Attempts to parse the response body as JSON
+func parseJSONBody(res *http.Response) (map[string]interface{}, error) {
+	var body map[string]interface{}
+
+	bodyBuffer, err := ioutil.ReadAll(res.Body)
+
+	if err != nil {
+		return nil, err
+	}
+
+	err = json.Unmarshal(bodyBuffer, &body)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return body, nil
 }
