@@ -5,6 +5,9 @@ import (
 	"regexp"
 )
 
+// RequiredFields is a list of field names that are required
+// to be present for a message to be valid.
+var RequiredFields = []string{"from", "to", "subject", "text"}
 var emailRegexp = regexp.MustCompile(`^[a-z0-9._%+\-]+@[a-z0-9.\-]+\.[a-z]{2,4}$`)
 
 // Message represents a basic email message.
@@ -27,9 +30,19 @@ func (m Message) ToDict() map[string]string {
 	return dict
 }
 
+// Validate validates whether a message is wellformed or not.
+// Validates the presence of required fields.
 // Validate From and To email addresses are wellformed.
 func (m Message) Validate() error {
 	mDict := m.ToDict()
+
+	// validate presence of required fields
+	for _, field := range RequiredFields {
+		value, present := mDict[field]
+		if !present || value == "" {
+			return fmt.Errorf("missing required field *%s*", field)
+		}
+	}
 
 	// validate format of From and To emails
 	emailFields := []string{"from", "to"}
