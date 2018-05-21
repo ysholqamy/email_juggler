@@ -73,3 +73,37 @@ func TestStopsOnSuccess(t *testing.T) {
 		t.Errorf("first provider succeeded. Attempted to send message using second provider")
 	}
 }
+
+// Only try second provider after first providerfails
+func TestFailsOver(t *testing.T) {
+	resetAllMocks()
+	mockP2.Succeed = true
+	err := rrMockProvider.Send(validMessage)
+
+	// assert it succeeds
+	if err != nil {
+		t.Errorf("Message was sent and an error was reported. err: %v", err)
+	}
+
+	// tried first provider
+	if mockP1.Trials == 0 {
+		t.Error("Failed over without attempting first provider")
+	}
+
+	// tried second provider
+	if mockP2.Trials == 0 {
+		t.Error("Did not attempt second provider when provider first fails")
+	}
+}
+
+func TestRoundRobin(t *testing.T) {
+	resetAllMocks()
+	mockP1.Succeed = true
+	mockP2.Succeed = true
+	rrMockProvider.Send(validMessage)
+	rrMockProvider.Send(validMessage)
+
+	if mockP1.Trials != 1 || mockP2.Trials != 1 {
+		t.Error("Messages are not routed in a roundrobin fashion")
+	}
+}
