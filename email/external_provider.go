@@ -27,6 +27,9 @@ type externalProvider interface {
 
 	// normalizes response errors, if any.
 	normalizeErrors(*http.Response) error
+
+	// Human-readable name of the external provider
+	name() string
 }
 
 // Mailgun represents Mailgun external email provider
@@ -132,7 +135,7 @@ func processMessage(ep externalProvider, m Message) error {
 
 	// Provider specific error occured
 	if res.StatusCode != http.StatusOK && res.StatusCode != http.StatusAccepted {
-		return ep.normalizeErrors(res)
+		return errors.New(ep.name() + ": " + ep.normalizeErrors(res).Error())
 	}
 
 	// message sent successfully.
