@@ -1,9 +1,17 @@
 package email
 
 import (
+	"encoding/json"
+	"errors"
+	"io/ioutil"
 	"net/http"
 	"net/url"
 	"strings"
+)
+
+// Common external provider errors
+var (
+	ErrProviderBadResponse = errors.New("Could not parse provider response")
 )
 
 type externalProvider interface {
@@ -25,6 +33,38 @@ type Mailgun struct {
 	Key     string
 	Domain  string
 	BaseURL string
+}
+
+// Send implements the Provider Send method.
+func (mg *Mailgun) Send(m Message) error        { return processMessage(mg, m) }
+func (mg *Mailgun) url() string                 { return mg.BaseURL + "/" + mg.Domain + "/messages" }
+func (mg *Mailgun) authorize(req *http.Request) { req.SetBasicAuth("api", mg.Key) }
+func (mg *Mailgun) name() string                { return "Mailgun" }
+
+// Handles Mailgun specific response errors
+func (mg *Mailgun) normalizeErrors(res *http.Response) error {
+	// parseBody
+	var body map[string]interface{}
+
+	bodyBuffer, err := ioutil.ReadAll(res.Body)
+
+	if err != nil {
+		return errors.New(ErrProviderBadResponse.Error() + ": " + err.Error())
+	}
+
+	err = json.Unmarshal(bodyBuffer, &body)
+
+	if err != nil {
+		return errors.New(ErrProviderBadResponse.Error() + ": " + err.Error())
+	}
+
+	// extract error message
+	errMessage, ok := body["message"].(string)
+	if !ok {
+		return ErrProviderBadResponse
+	}
+
+	return errors.New(errMessage)
 }
 
 // Sendgrid represents Sendgrid external email provider
