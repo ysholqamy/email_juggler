@@ -16,20 +16,21 @@ const (
 var DefaultService = CreateService(DefaultProvider)
 
 // CreateService Wraps a Provider into an http Handler.
+// Enforces http Method and Content-Type.
 // Handles body parsing to message.
 // Delegates sending message to Provider.
 func CreateService(p Provider) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// only handle POST requests
 		if r.Method != http.MethodPost {
-			http.Error(w, "Only POST is supported", http.StatusMethodNotAllowed)
+			http.Error(w, "only POST is supported", http.StatusMethodNotAllowed)
 			return
 		}
 
 		// only handle JSON and URLEncoded requests
 		if r.Header.Get("Content-Type") != contentJSON &&
 			r.Header.Get("Content-Type") != contentURLEncoded {
-			http.Error(w, "Supports "+contentJSON+" and "+contentURLEncoded+" only",
+			http.Error(w, "supports "+contentJSON+" and "+contentURLEncoded+" only",
 				http.StatusUnsupportedMediaType)
 			return
 		}
@@ -55,7 +56,7 @@ func CreateService(p Provider) http.Handler {
 		}
 
 		w.WriteHeader(http.StatusOK)
-		fmt.Fprintf(w, "Message sent successfully.\n")
+		fmt.Fprintf(w, "message sent successfully.\n")
 	})
 }
 

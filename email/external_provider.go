@@ -104,6 +104,8 @@ func (sg *Sendgrid) normalizeErrors(res *http.Response) error {
 	return errors.New(errMessage)
 }
 
+// Generates a request to the given URL with the given message
+// as url encoded form.
 func generateFormRequest(URL string, m Message) (*http.Request, error) {
 	// encode message as a form
 	mDict := m.ToDict()
@@ -123,6 +125,9 @@ func generateFormRequest(URL string, m Message) (*http.Request, error) {
 	return req, nil
 }
 
+// Processes the given message using the given external provider
+// Handles generic request/response errors, delegates provider
+// specific errors to the external provider
 func processMessage(ep externalProvider, m Message) error {
 	// generate request
 	req, err := generateFormRequest(ep.url(), m)
