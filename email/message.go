@@ -1,5 +1,12 @@
 package email
 
+import (
+	"fmt"
+	"regexp"
+)
+
+var emailRegexp = regexp.MustCompile(`^[a-z0-9._%+\-]+@[a-z0-9.\-]+\.[a-z]{2,4}$`)
+
 // Message represents a basic email message.
 type Message struct {
 	From    string // email address of sender
@@ -18,4 +25,21 @@ func (m Message) ToDict() map[string]string {
 	}
 
 	return dict
+}
+
+// Validate From and To email addresses are wellformed.
+func (m Message) Validate() error {
+	mDict := m.ToDict()
+
+	// validate format of From and To emails
+	emailFields := []string{"from", "to"}
+	for _, emailField := range emailFields {
+		value := mDict[emailField]
+		if !emailRegexp.MatchString(value) {
+			return fmt.Errorf("field %s has an invalid value %s", emailField, value)
+		}
+	}
+
+	// required fields are present and email fields are well formed.
+	return nil
 }
