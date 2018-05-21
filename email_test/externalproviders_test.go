@@ -3,7 +3,7 @@ package email_test
 import (
 	"testing"
 
-	. "github.com/ysholqamy/uber-email-challenge/email"
+	. "github.com/ysholqamy/email_juggler/email"
 )
 
 var validMessage = Message{

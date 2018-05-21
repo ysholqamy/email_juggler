@@ -10,6 +10,9 @@ var (
 	ErrServiceUnavailable = errors.New("Service Unavailable, try again later")
 )
 
+// DefaultProvider is a roundrobin provider over default Mailgun and Sendgrid.
+var DefaultProvider = NewRoundRobinProvider(DefaultMailgun, DefaultSendgrid)
+
 // Provider is an abstraction over email providers
 type Provider interface {
 	// Send takes a message and sends it, returning errors if any.
