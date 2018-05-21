@@ -79,3 +79,17 @@ func TestBadMessage(t *testing.T) {
 		t.Errorf("Malformed message proccessed. got: %d", res.Code)
 	}
 }
+
+// Handle POST only
+func TestWrongVerb(t *testing.T) {
+	req, err := http.NewRequest("GET", "/email", nil)
+	req.Header.Set("Content-Type", "application/json")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	res := mockServeRequest(req)
+	if res.Code != http.StatusMethodNotAllowed {
+		t.Error("Wrong method allowed")
+	}
+}

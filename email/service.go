@@ -12,6 +12,12 @@ import (
 // Delegates sending message to Provider.
 func CreateService(p Provider) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// only handle POST requests
+		if r.Method != http.MethodPost {
+			http.Error(w, "Only POST is supported", http.StatusMethodNotAllowed)
+			return
+		}
+
 		// parse body to message
 		message, err := parseJSONMessage(r)
 		if err != nil {
@@ -32,7 +38,6 @@ func CreateService(p Provider) http.Handler {
 			return
 		}
 
-		// no errors, message was sent.
 		w.WriteHeader(http.StatusOK)
 		fmt.Fprintf(w, "Message sent successfully.\n")
 	})
