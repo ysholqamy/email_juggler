@@ -3,6 +3,7 @@ package email
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"net/url"
@@ -71,6 +72,45 @@ func (mg *Mailgun) normalizeErrors(res *http.Response) error {
 type Sendgrid struct {
 	Key     string
 	BaseURL string
+}
+
+// Send implements the Provider Send method.
+func (sg *Sendgrid) Send(m Message) error        { return processMessage(sg, m) }
+func (sg *Sendgrid) url() string                 { return sg.BaseURL }
+func (sg *Sendgrid) authorize(req *http.Request) { req.Header.Set("Authorization", "Bearer "+sg.Key) }
+func (sg *Sendgrid) name() string                { return "Sendgrid" }
+
+// Handles Sendgrid specific response errors
+func (sg *Sendgrid) normalizeErrors(res *http.Response) error {
+	// parseBody
+	var body map[string]interface{}
+
+	bodyBuffer, err := ioutil.ReadAll(res.Body)
+
+	if err != nil {
+		return errors.New(ErrProviderBadResponse.Error() + ": " + err.Error())
+	}
+
+	err = json.Unmarshal(bodyBuffer, &body)
+
+	if err != nil {
+		return errors.New(ErrProviderBadResponse.Error() + ": " + err.Error())
+	}
+
+	// extract error message
+	errs, ok := body["errors"].([]interface{})
+	if !ok {
+		return ErrProviderBadResponse
+	}
+
+	// convert error messages to strings and join them into a single message.
+	errMessages := make([]string, len(errs))
+	for i, v := range errs {
+		errMessages[i] = fmt.Sprint(v)
+	}
+	errMessage := strings.Join(errMessages, ". ")
+
+	return errors.New(errMessage)
 }
 
 func generateFormRequest(URL string, m Message) (*http.Request, error) {
