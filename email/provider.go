@@ -2,6 +2,7 @@ package email
 
 import (
 	"errors"
+	"log"
 	"sync"
 )
 
@@ -56,6 +57,9 @@ func (rr *roundrobinProvider) Send(m Message) error {
 		if err == nil {
 			return nil
 		}
+
+		// logged for internal use, will not be returned to caller
+		log.Println(err)
 	}
 
 	// all subproviders failed to send message
