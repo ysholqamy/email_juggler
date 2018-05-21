@@ -28,10 +28,10 @@ func TestValidRequest(t *testing.T) {
 	}
 
 	req, err := http.NewRequest("POST", "/email", bytes.NewBuffer(jsonBody))
-
 	if err != nil {
 		t.Fatal(err)
 	}
+	req.Header.Set("Content-Type", "application/json")
 
 	res := mockServeRequest(req)
 
@@ -50,6 +50,7 @@ func TestNoAvailableProviders(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	req.Header.Set("Content-Type", "application/json")
 
 	// A roundrobin provided over a single always failing provider.
 	service := CreateService(NewRoundRobinProvider(&MockProvider{Succeed: false}))
@@ -73,6 +74,8 @@ func TestBadMessage(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+
+	req.Header.Set("Content-Type", "application/json")
 	res := mockServeRequest(req)
 
 	if res.Code != http.StatusBadRequest {
@@ -91,5 +94,19 @@ func TestWrongVerb(t *testing.T) {
 	res := mockServeRequest(req)
 	if res.Code != http.StatusMethodNotAllowed {
 		t.Error("Wrong method allowed")
+	}
+}
+
+// Handle application/json only
+func TestWrongContentType(t *testing.T) {
+	req, err := http.NewRequest("POST", "/email", nil)
+	req.Header.Set("Content-Type", "text/plain")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	res := mockServeRequest(req)
+	if res.Code != http.StatusUnsupportedMediaType {
+		t.Error("Wrong content type allowed")
 	}
 }

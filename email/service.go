@@ -7,6 +7,10 @@ import (
 	"net/http"
 )
 
+const (
+	contentJSON = "application/json"
+)
+
 // CreateService Wraps a Provider into an http Handler.
 // Handles body parsing to message.
 // Delegates sending message to Provider.
@@ -15,6 +19,12 @@ func CreateService(p Provider) http.Handler {
 		// only handle POST requests
 		if r.Method != http.MethodPost {
 			http.Error(w, "Only POST is supported", http.StatusMethodNotAllowed)
+			return
+		}
+
+		// only handle JSON requests
+		if r.Header.Get("Content-Type") != contentJSON {
+			http.Error(w, "Supports "+contentJSON+" only", http.StatusUnsupportedMediaType)
 			return
 		}
 
