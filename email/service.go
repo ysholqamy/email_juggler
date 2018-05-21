@@ -8,7 +8,8 @@ import (
 )
 
 const (
-	contentJSON = "application/json"
+	contentJSON       = "application/json"
+	contentURLEncoded = "application/x-www-form-urlencoded"
 )
 
 // CreateService Wraps a Provider into an http Handler.
@@ -22,14 +23,16 @@ func CreateService(p Provider) http.Handler {
 			return
 		}
 
-		// only handle JSON requests
-		if r.Header.Get("Content-Type") != contentJSON {
-			http.Error(w, "Supports "+contentJSON+" only", http.StatusUnsupportedMediaType)
+		// only handle JSON and URLEncoded requests
+		if r.Header.Get("Content-Type") != contentJSON &&
+			r.Header.Get("Content-Type") != contentURLEncoded {
+			http.Error(w, "Supports "+contentJSON+" and "+contentURLEncoded+" only",
+				http.StatusUnsupportedMediaType)
 			return
 		}
 
 		// parse body to message
-		message, err := parseJSONMessage(r)
+		message, err := parseBodyMessage(r)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
@@ -51,6 +54,30 @@ func CreateService(p Provider) http.Handler {
 		w.WriteHeader(http.StatusOK)
 		fmt.Fprintf(w, "Message sent successfully.\n")
 	})
+}
+
+func parseBodyMessage(r *http.Request) (Message, error) {
+	if r.Header.Get("Content-Type") == contentJSON {
+		return parseJSONMessage(r)
+	}
+
+	return parseURLEncodedMessage(r)
+}
+
+func parseURLEncodedMessage(r *http.Request) (Message, error) {
+	m := Message{}
+
+	err := r.ParseForm()
+	if err != nil {
+		return m, err
+	}
+
+	m.To = r.Form.Get("to")
+	m.From = r.Form.Get("from")
+	m.Text = r.Form.Get("text")
+	m.Subject = r.Form.Get("subject")
+
+	return m, nil
 }
 
 func parseJSONMessage(r *http.Request) (Message, error) {

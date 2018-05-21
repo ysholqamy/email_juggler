@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
+	"strings"
 	"testing"
 
 	. "github.com/ysholqamy/email_juggler/email"
@@ -21,17 +23,38 @@ func mockServeRequest(req *http.Request) *httptest.ResponseRecorder {
 	return rr
 }
 
-func TestValidRequest(t *testing.T) {
+func TestValidJSONRequest(t *testing.T) {
 	jsonBody, err := json.Marshal(validMessage)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	req, err := http.NewRequest("POST", "/email", bytes.NewBuffer(jsonBody))
+	req, err := http.NewRequest("POST", "/emails", bytes.NewBuffer(jsonBody))
 	if err != nil {
 		t.Fatal(err)
 	}
 	req.Header.Set("Content-Type", "application/json")
+
+	res := mockServeRequest(req)
+
+	if res.Code != http.StatusOK {
+		t.Errorf("Failed to process valid message. got: %d", res.Code)
+	}
+}
+
+func TestValidURLEncodedRequest(t *testing.T) {
+	mDict := validMessage.ToDict()
+	form := url.Values{}
+	for key, val := range mDict {
+		form.Set(key, val)
+	}
+
+	// create request
+	req, err := http.NewRequest("POST", "/emails", strings.NewReader(form.Encode()))
+	if err != nil {
+		t.Fatal(err)
+	}
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
 	res := mockServeRequest(req)
 
@@ -46,7 +69,7 @@ func TestNoAvailableProviders(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	req, err := http.NewRequest("POST", "/email", bytes.NewBuffer(jsonBody))
+	req, err := http.NewRequest("POST", "/emails", bytes.NewBuffer(jsonBody))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -70,7 +93,7 @@ func TestBadMessage(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	req, err := http.NewRequest("POST", "/email", bytes.NewBuffer(jsonBody))
+	req, err := http.NewRequest("POST", "/emails", bytes.NewBuffer(jsonBody))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -85,7 +108,7 @@ func TestBadMessage(t *testing.T) {
 
 // Handle POST only
 func TestWrongVerb(t *testing.T) {
-	req, err := http.NewRequest("GET", "/email", nil)
+	req, err := http.NewRequest("GET", "/emails", nil)
 	req.Header.Set("Content-Type", "application/json")
 	if err != nil {
 		t.Fatal(err)
@@ -99,7 +122,7 @@ func TestWrongVerb(t *testing.T) {
 
 // Handle application/json only
 func TestWrongContentType(t *testing.T) {
-	req, err := http.NewRequest("POST", "/email", nil)
+	req, err := http.NewRequest("POST", "/emails", nil)
 	req.Header.Set("Content-Type", "text/plain")
 	if err != nil {
 		t.Fatal(err)
