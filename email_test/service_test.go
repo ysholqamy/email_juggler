@@ -1,3 +1,5 @@
+// +build all internal
+
 package email_test
 
 import (
