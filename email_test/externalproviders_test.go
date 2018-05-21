@@ -6,13 +6,6 @@ import (
 	. "github.com/ysholqamy/email_juggler/email"
 )
 
-var validMessage = Message{
-	From:    "email@example.com",
-	To:      "youssefsholqamy@gmail.com",
-	Subject: "subject",
-	Text:    "Hello from tests",
-}
-
 func TestValidMailgun(t *testing.T) {
 	err := DefaultMailgun.Send(validMessage)
 	if err != nil {
