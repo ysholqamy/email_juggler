@@ -16,7 +16,7 @@ func main() {
 		port = "8080"
 	}
 
-	http.Handle("/emails", emailService)
+	http.Handle("/messages", emailService)
 	err := http.ListenAndServe(":"+port, logRequest(http.DefaultServeMux))
 	if err != nil {
 		log.Fatal(err)
