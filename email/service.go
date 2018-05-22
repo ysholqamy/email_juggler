@@ -56,7 +56,7 @@ func CreateService(p Provider) http.Handler {
 		}
 
 		w.WriteHeader(http.StatusOK)
-		fmt.Fprintf(w, "message sent successfully.\n")
+		fmt.Fprintf(w, "message sent successfully\n")
 	})
 }
 
