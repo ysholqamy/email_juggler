@@ -59,6 +59,9 @@ The service can be scaled either by:
 ### Message Status
 In a better version, the delivery status of each message should be persisted, and clients should be able to query the status of a message in the system.
 
+# Security
+Currently, the service does not imploy any security measures like authenticating the sender. A bearer authentication scheme would be suitable.
+
 
 ## Production API
 The service is running in production on Heroku at 
