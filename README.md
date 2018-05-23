@@ -9,7 +9,7 @@ The service provides an abstraction over several external email providers. Email
 
 ## Getting started
 
-To run the service locally, update your environment to include the required keys:
+To run the service locally, update your environment to include the required variables:
 
     MAILGUN_KEY=YOUR_KEY
     MAILGUN_DOMAIN=YOUR_MAILGUN_DOMAIN
@@ -25,10 +25,10 @@ and you are done!
 ## Architecture and Design
 
 ### Fault tolerance
-RoundRobin routing is used between different providers, on failure the request is attempted using the next provider, until the request succeeds or all providers are tried for the given request. 
+RoundRobin routing is used between different providers, on failure the request is attempted using the next provider, until the request succeeds or all providers are tried for the given request. The RoundRobin provider remembers the last used sub provider, this will ensure that the requests will be distributed evenly between sub providers.
 
 ### Queue backed Provider
-Email providers usually use background processing for sending emails. A new implementation of the Provider interface can be submitting the messages to a job queue, while workers process the submitted jobs. 
+Email providers usually use background processing for sending emails. A new implementation of the Provider interface can be submitting the messages to a job queue, while workers process the submitted jobs. Implementing the Provider interface will mean that the service code can be kept intact.
 
 **Advantages:**
 1) Control retry policy.
@@ -58,9 +58,6 @@ The service can be scaled either by:
 
 ### Message Status
 In a better version, the delivery status of each message should be persisted, and clients should be able to query the status of a message in the system.
-
-# Security
-Currently, the service does not imploy any security measures like authenticating the sender. A bearer authentication scheme would be suitable.
 
 
 ## Production API
@@ -104,7 +101,7 @@ Tests are separated into two folds using build tags.
 
 To run internal tests:
 
-    go tests ./email_test -tags internal
+    go test ./email_test -tags internal
 
 To run external tests:
 
@@ -116,21 +113,8 @@ To run all tests:
 
 ## Future Work
 
-1) Refactor the code to use a message queue instead of processing emails synchronously.
+1) Use an async job queue instead of processing emails synchronously.
 2) Add rate limiting.
 3) Add additional failover strategies
 4) Rewrite the tests.
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+5) Message should support including attachments, cc, bcc, etc. 
