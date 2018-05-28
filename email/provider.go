@@ -50,8 +50,7 @@ func (rr *roundrobinProvider) Send(m Message) error {
 	// do a single cycle through subproviders
 	// starting at the subprovider currently in turn
 	for range rr.subProviders {
-		err := rr.subProviders[rr.turn].Send(m)
-		rr.next() // advances turn
+		err := rr.nextProvider().Send(m)
 
 		// message sent successfully
 		if err == nil {
@@ -66,10 +65,15 @@ func (rr *roundrobinProvider) Send(m Message) error {
 	return ErrServiceUnavailable
 }
 
-// next advances the turn pointer of the roundrobinProvider
+// nextProvider returns the provider currently in turn
+// advances the turn pointer of the roundrobinProvider
 // safe for concurrent use
-func (rr *roundrobinProvider) next() {
+func (rr *roundrobinProvider) nextProvider() Provider {
 	rr.Lock()
 	defer rr.Unlock()
+
+	p := rr.subProviders[rr.turn]
 	rr.turn = (rr.turn + 1) % len(rr.subProviders) // advances in ring
+
+	return p
 }
